@@ -8,6 +8,7 @@ This tool processes a Twitter archive zip file to extract tweet data. It handles
 
 - Extract Twitter data directly from archive zip file
 - Process tweets and likes into a structured CSV
+- Optional image analysis using the CLIP model
 - Comprehensive data extraction including:
   - Tweet text and timestamps
   - Reply information
@@ -20,18 +21,77 @@ This tool processes a Twitter archive zip file to extract tweet data. It handles
 
 ### Required Packages
 
-- Python 3.6 or higher
+- Python 3.9 recommended
+- NumPy < 2.0 (important for compatibility)
 - pandas
 - requests
+- Pillow
+- Optional: transformers and torch (for image analysis)
 
 ## Installation
 
 1. Clone this repository or download the `twitter_archive_processor.py` script
 
-2. Install the required packages:
+   ```bash
+   git clone https://github.com/yourusername/tweeter_archive_processor.git
+   cd tweeter_archive_processor
+   ```
 
-```bash
-pip install pandas requests
+2. Set up the environment using conda with environment.yml (recommended):
+
+   ```bash
+   # Create and set up environment using environment.yml
+   conda env create -f environment.yml
+   conda activate twitter_env
+   ```
+
+   The environment.yml file contains all the necessary dependencies with specific version requirements:
+   
+   ```yaml
+   name: twitter_env
+   channels:
+     - conda-forge
+     - defaults
+   dependencies:
+     - python=3.9
+     - numpy=1.24.0
+     - pandas=1.5.3
+     - pillow=9.4.0
+     - requests=2.28.2
+     - pip=22.3.1
+     - pip:
+       - transformers==4.26.0
+       - torch==1.13.1
+   ```
+   
+   This approach ensures that all dependencies are installed with the exact versions needed to avoid compatibility issues. The YML file specifies that packages should be installed from conda-forge and defaults channels, with specific packages from pip where necessary.
+
+   Alternatively, you can install packages manually:
+
+   ```bash
+   # Create conda environment
+   conda create -n twitter_env python=3.9
+   conda activate twitter_env
+   
+   # Install core dependencies
+   conda install -c conda-forge numpy=1.24.0 pandas=1.5.3 pillow=9.4.0 requests=2.28.2
+   
+   # Optional: Install for image analysis
+   pip install transformers==4.26.0 torch==1.13.1
+   ```
+
+3. Or install using pip with the requirements.txt file:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Important Note on NumPy Compatibility
+
+This project requires NumPy version less than 2.0 due to compatibility issues with pandas and other dependencies. Using NumPy 2.x may result in errors like:
+
+```
+A module that was compiled using NumPy 1.x cannot be run in NumPy 2.x
 ```
 
 ## Project Structure
@@ -42,10 +102,12 @@ The recommended project structure is:
 tweeter_archive_processor/
 ├── archive/
 │   └── twitter-archive.zip    # Your Twitter archive goes here
-├── results/
+├── output/
 │   └── tweets_data.csv        # Output will be saved here
 ├── .gitignore
 ├── README.md
+├── environment.yml            # Conda environment configuration
+├── requirements.txt           # Pip requirements file
 └── twitter_archive_processor.py
 ```
 
@@ -68,12 +130,13 @@ By default, the script expects the archive file to be named `twitter-archive.zip
 ### Command-line Options
 
 ```
-python twitter_archive_processor.py [--archive ARCHIVE_PATH] [--output-dir OUTPUT_DIR]
+python twitter_archive_processor.py [--archive ARCHIVE_PATH] [--output-dir OUTPUT_DIR] [--analyze-images]
 ```
 
 Parameters:
 - `--archive`: Path to the Twitter archive zip file (default: twitter-archive.zip)
 - `--output-dir`: Directory to store output files (default: results)
+- `--analyze-images`: Enable image analysis using CLIP model (requires transformers and torch)
 
 ### Example Commands
 
@@ -92,9 +155,16 @@ Specify output directory:
 python twitter_archive_processor.py --output-dir my_results
 ```
 
+Enable image analysis:
+```bash
+python twitter_archive_processor.py --analyze-images
+```
+
 ## Output Files
 
-The script generates `tweets_data.csv` in the output directory, containing all the extracted tweet data.
+The script generates:
+- `tweets_data.csv` in the output directory, containing all the extracted tweet data
+- `tweets_data_with_image_analysis.csv` (if image analysis is enabled)
 
 ## CSV Format
 
@@ -113,6 +183,10 @@ The output CSV includes the following columns:
 - `favorite_count`: Number of favorites
 - `like_count`: Number of likes
 
+With image analysis enabled, additional columns:
+- `Image Category`: Categorization of the image (meme, infographic, etc.)
+- `Probability`: Confidence score of the classification
+
 ## Troubleshooting
 
 ### Common Issues
@@ -125,6 +199,15 @@ The output CSV includes the following columns:
    - Ensure you're using a valid Twitter archive
    - The archive should contain `tweet.js` (or `tweets.js`) and `like.js` files
 
+3. **NumPy version errors**
+   - If you see NumPy compatibility errors, ensure you're using NumPy version less than 2.0
+   - Use the provided environment.yml or requirements.txt to set up your environment
+
+4. **Recursion errors with transformers**
+   - If you encounter recursion errors when using the image analysis feature, try:
+     - Increasing Python's recursion limit
+     - Using the specific versions of transformers and torch in environment.yml
+
 ## Getting Your Twitter Archive
 
 1. Log into your Twitter account
@@ -132,7 +215,6 @@ The output CSV includes the following columns:
 3. Follow Twitter's instructions to request and download your archive
 4. Place the downloaded zip file in the archive directory
 
-
 ---
 
-*Last updated: March 17, 2025*
+*Last updated: March 21, 2025. We recommend using the conda environment with environment.yml file for setup as it's the most reliable method to ensure compatibility across all dependencies.*
