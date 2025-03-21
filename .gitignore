@@ -1,2 +1,4 @@
 /archive/twitter-archive.zip
 /output/tweets_data.csv
+/.idea
+.DS_Store
